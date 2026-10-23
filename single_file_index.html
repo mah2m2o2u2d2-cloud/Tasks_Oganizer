@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Habit Tracker</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+body {
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom Scrollbar hiding for tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Dynamic Theme Support */
+body.theme-emerald {
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-light: #ecfdf5;
+  --accent-badge: #fef3c7;
+  --accent-badge-text: #b45309;
+}
+
+body.theme-indigo {
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #eef2ff;
+  --accent-badge: #fef3c7;
+  --accent-badge-text: #b45309;
+}
+
+body.theme-rose {
+  --bg-main: #fff1f2;
+  --card-bg: #ffffff;
+  --card-border: #fecdd3;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --primary-light: #ffe4e6;
+  --accent-badge: #fef3c7;
+  --accent-badge-text: #b45309;
+}
+
+body.theme-dark {
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-light: #064e3b;
+  --accent-badge: #78350f;
+  --accent-badge-text: #fde68a;
+}
+
+.theme-bg { background-color: var(--bg-main); color: var(--text-main); }
+.theme-card { background-color: var(--card-bg); border-color: var(--card-border); color: var(--text-main); }
+.theme-muted { color: var(--text-muted); }
+.theme-btn-primary { background-color: var(--primary); color: #ffffff; }
+.theme-btn-primary:hover { background-color: var(--primary-hover); }
+.theme-primary-text { color: var(--primary); }
+.theme-primary-bg-light { background-color: var(--primary-light); }
+
+</style>
+</head>
+<body class="theme-emerald theme-bg min-h-screen flex flex-col items-center justify-center py-6 px-3 sm:px-4">
+
+  <!-- ================= AUTH VIEW ================= -->
+  <div id="auth-view" class="w-full max-w-md theme-card rounded-2xl shadow-sm border p-6 sm:p-8">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mb-3 text-2xl">
+        ✨
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight">Habit Tracker</h1>
+      <p class="text-sm theme-muted mt-1">Sign in or create an account to start tracking</p>
+    </div>
+
+    <!-- Auth Tabs with direct onclick -->
+    <div class="flex p-1 bg-slate-100 rounded-xl mb-5">
+      <button
+        id="tab-login"
+        type="button"
+        onclick="setAuthMode('login')"
+        class="flex-1 py-2 text-sm font-semibold rounded-lg transition bg-white text-slate-900 shadow-xs"
+      >
+        Log In
+      </button>
+      <button
+        id="tab-signup"
+        type="button"
+        onclick="setAuthMode('signup')"
+        class="flex-1 py-2 text-sm font-medium rounded-lg transition text-slate-500 hover:text-slate-900"
+      >
+        Create Account
+      </button>
+    </div>
+
+    <!-- Alert / Error message with action button -->
+    <div id="auth-alert" class="hidden mb-4 p-3 rounded-xl text-xs font-medium"></div>
+
+    <!-- Auth Form with onsubmit preventDefault -->
+    <form id="auth-form" onsubmit="event.preventDefault(); handleAuthSubmit();" class="space-y-4">
+      <div>
+        <label for="username-input" class="block text-xs font-semibold uppercase tracking-wider theme-muted mb-1.5">
+          Username
+        </label>
+        <input
+          type="text"
+          id="username-input"
+          placeholder="Enter your username"
+          autocomplete="username"
+          required
+          class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition text-slate-900"
+        >
+      </div>
+
+      <div>
+        <label for="password-input" class="block text-xs font-semibold uppercase tracking-wider theme-muted mb-1.5">
+          Password
+        </label>
+        <input
+          type="password"
+          id="password-input"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+          class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition text-slate-900"
+        >
+      </div>
+
+      <button
+        type="submit"
+        id="auth-submit-btn"
+        class="w-full theme-btn-primary font-semibold py-2.5 px-4 rounded-xl shadow-sm transition text-sm mt-2"
+      >
+        Log In
+      </button>
+    </form>
+  </div>
+
+  <!-- ================= TRACKER VIEW (MAIN DASHBOARD) ================= -->
+  <div id="tracker-view" class="hidden w-full max-w-lg theme-card rounded-2xl shadow-sm border p-4 sm:p-6">
+    
+    <!-- App Header & Current User Summary -->
+    <header class="pb-4 border-b border-slate-200/60 mb-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="user-avatar" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base bg-emerald-100 text-emerald-800 overflow-hidden shadow-xs border border-emerald-200">
+            U
+          </div>
+          <div>
+            <div class="text-xs theme-muted font-medium leading-none">Welcome back,</div>
+            <div class="text-sm font-bold capitalize mt-0.5 flex items-center gap-1.5">
+              <span id="current-user-display">User</span>
+              <span id="streak-badge" class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 px-2 py-0.5 rounded-full text-[11px] font-bold">
+                🔥 <span id="streak-count">1 Day</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          id="logout-btn"
+          type="button"
+          onclick="logout()"
+          class="text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-slate-200 transition"
+        >
+          Log Out
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex gap-1 mt-4 p-1 bg-slate-100/90 rounded-xl overflow-x-auto no-scrollbar" aria-label="Main Navigation">
+        <button
+          id="nav-habits"
+          type="button"
+          onclick="switchTab('habits')"
+          class="nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg transition bg-white text-slate-900 shadow-xs flex items-center justify-center gap-1"
+        >
+          <span>📋</span> Habits
+        </button>
+        <button
+          id="nav-analytics"
+          type="button"
+          onclick="switchTab('analytics')"
+          class="nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition text-slate-500 hover:text-slate-900 flex items-center justify-center gap-1"
+        >
+          <span>📊</span> Stats
+        </button>
+        <button
+          id="nav-focus"
+          type="button"
+          onclick="switchTab('focus')"
+          class="nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition text-slate-500 hover:text-slate-900 flex items-center justify-center gap-1"
+        >
+          <span>⏱️</span> Focus
+        </button>
+        <button
+          id="nav-journal"
+          type="button"
+          onclick="switchTab('journal')"
+          class="nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition text-slate-500 hover:text-slate-900 flex items-center justify-center gap-1"
+        >
+          <span>📝</span> Journal
+        </button>
+        <button
+          id="nav-badges"
+          type="button"
+          onclick="switchTab('badges')"
+          class="nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition text-slate-500 hover:text-slate-900 flex items-center justify-center gap-1"
+        >
+          <span>🏅</span> Badges
+        </button>
+        <button
+          id="nav-settings"
+          type="button"
+          onclick="switchTab('settings')"
+          class="nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition text-slate-500 hover:text-slate-900 flex items-center justify-center gap-1"
+        >
+          <span>⚙️</span> Settings
+        </button>
+      </nav>
+    </header>
+
+    <!-- SECTION 1: HABITS -->
+    <section id="section-habits" class="space-y-4">
+      <div class="p-3.5 bg-slate-100/60 rounded-xl border border-slate-200/60">
+        <div class="flex justify-between items-center text-xs font-semibold theme-muted mb-2">
+          <span>Today's Progress</span>
+          <span id="progress-text">0 / 0 completed (0%)</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+          <div id="progress-bar" class="h-2 rounded-full transition-all duration-300 w-0 theme-btn-primary"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs" id="category-filters">
+        <button type="button" data-filter="all" class="cat-filter px-2.5 py-1 rounded-lg font-semibold bg-slate-900 text-white transition">All</button>
+        <button type="button" data-filter="Health" class="cat-filter px-2.5 py-1 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">🏃 Health</button>
+        <button type="button" data-filter="Mind" class="cat-filter px-2.5 py-1 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">🧘 Mind</button>
+        <button type="button" data-filter="Work" class="cat-filter px-2.5 py-1 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">⚡ Work</button>
+        <button type="button" data-filter="Learn" class="cat-filter px-2.5 py-1 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">📚 Learn</button>
+      </div>
+
+      <form id="habit-form" class="space-y-2">
+        <div class="flex gap-2">
+          <input
+            type="text"
+            id="habit-input"
+            placeholder="e.g. Read 15 pages or 20 pushups"
+            maxlength="60"
+            class="flex-1 px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition text-slate-900"
+          >
+          <select id="habit-category-select" class="px-2 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none text-slate-700">
+            <option value="Health">🏃 Health</option>
+            <option value="Mind">🧘 Mind</option>
+            <option value="Work">⚡ Work</option>
+            <option value="Learn">📚 Learn</option>
+          </select>
+          <button
+            type="submit"
+            id="add-btn"
+            class="theme-btn-primary text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
+          >
+            Add
+          </button>
+        </div>
+      </form>
+
+      <div id="habit-list-container">
+        <ul id="habit-list" class="space-y-2.5"></ul>
+        <div id="empty-state" class="text-center py-8 theme-muted">
+          <svg class="w-10 h-10 mx-auto mb-2 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+          <p class="text-sm font-medium">No habits in this view</p>
+          <p class="text-xs opacity-75 mt-0.5">Add a new habit above to get started</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: ANALYTICS -->
+    <section id="section-analytics" class="hidden space-y-4">
+      <div>
+        <h2 class="text-base font-bold tracking-tight">Consistency & Stats</h2>
+        <p class="text-xs theme-muted mt-0.5">Your personal performance metrics</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+          <div class="text-[11px] theme-muted font-medium">Total Completed</div>
+          <div class="text-xl font-bold mt-1 text-emerald-600" id="stat-total-completed">0</div>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+          <div class="text-[11px] theme-muted font-medium">Current Streak</div>
+          <div class="text-xl font-bold mt-1 text-amber-600" id="stat-current-streak">1 Day</div>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+          <div class="text-[11px] theme-muted font-medium">Perfect Days (100%)</div>
+          <div class="text-xl font-bold mt-1 text-indigo-600" id="stat-perfect-days">0</div>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+          <div class="text-[11px] theme-muted font-medium">Focus Minutes Logged</div>
+          <div class="text-xl font-bold mt-1 text-rose-600" id="stat-focus-minutes">0m</div>
+        </div>
+      </div>
+
+      <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-2">
+        <div class="flex justify-between items-center text-xs font-semibold">
+          <span>Last 7 Days Activity</span>
+          <span class="text-[10px] theme-muted">Completion Rate</span>
+        </div>
+        <div class="grid grid-cols-7 gap-1.5 pt-1 text-center" id="weekly-heatmap"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: FOCUS TIMER -->
+    <section id="section-focus" class="hidden space-y-4">
+      <div>
+        <h2 class="text-base font-bold tracking-tight">Focus Mode</h2>
+        <p class="text-xs theme-muted mt-0.5">Deep work session powered by the Pomodoro technique</p>
+      </div>
+
+      <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/70 text-center space-y-4">
+        <div class="inline-flex p-1 bg-slate-200/70 rounded-xl text-xs font-semibold gap-1">
+          <button type="button" id="timer-mode-focus" class="px-3 py-1 rounded-lg bg-white shadow-xs text-slate-900 transition">Focus (25m)</button>
+          <button type="button" id="timer-mode-break" class="px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition">Break (5m)</button>
+        </div>
+
+        <div class="py-2">
+          <div class="text-5xl font-mono font-bold tracking-tight text-slate-900" id="timer-display">25:00</div>
+          <p class="text-xs theme-muted mt-1" id="timer-status">Ready to start</p>
+        </div>
+
+        <div class="flex items-center justify-center gap-3">
+          <button
+            type="button"
+            id="timer-start-btn"
+            class="theme-btn-primary px-6 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition active:scale-95"
+          >
+            Start
+          </button>
+          <button
+            type="button"
+            id="timer-reset-btn"
+            class="px-4 py-2.5 rounded-xl border border-slate-300 font-semibold text-xs text-slate-600 hover:bg-slate-100 transition"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: JOURNAL -->
+    <section id="section-journal" class="hidden space-y-4">
+      <div>
+        <h2 class="text-base font-bold tracking-tight">Daily Reflection</h2>
+        <p class="text-xs theme-muted mt-0.5">Capture your mindset, gratitude, and daily wins</p>
+      </div>
+
+      <form id="journal-form" class="p-4 bg-slate-50 rounded-xl border border-slate-200/70 space-y-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider theme-muted mb-1.5">Today's Mood</label>
+          <div class="flex items-center gap-2" id="mood-picker">
+            <button type="button" data-mood="😄" class="mood-btn text-xl p-2 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition">😄</button>
+            <button type="button" data-mood="😌" class="mood-btn text-xl p-2 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition">😌</button>
+            <button type="button" data-mood="⚡" class="mood-btn text-xl p-2 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition">⚡</button>
+            <button type="button" data-mood="😐" class="mood-btn text-xl p-2 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition">😐</button>
+            <button type="button" data-mood="😴" class="mood-btn text-xl p-2 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition">😴</button>
+          </div>
+        </div>
+
+        <div>
+          <label for="journal-win-input" class="block text-xs theme-muted mb-1">One win or positive moment today:</label>
+          <input
+            type="text"
+            id="journal-win-input"
+            placeholder="e.g. Completed all workout goals & drank water"
+            class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+          >
+        </div>
+
+        <div>
+          <label for="journal-note-input" class="block text-xs theme-muted mb-1">Thoughts & Gratitude:</label>
+          <textarea
+            id="journal-note-input"
+            rows="2"
+            placeholder="What felt good today? What would make tomorrow even better?"
+            class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          class="theme-btn-primary text-xs font-semibold py-2 px-4 rounded-lg shadow-xs transition"
+        >
+          Save Daily Entry
+        </button>
+      </form>
+
+      <div class="space-y-2" id="journal-history">
+        <h3 class="text-xs font-bold uppercase tracking-wider theme-muted">Recent Reflections</h3>
+        <div id="journal-logs-list" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: BADGES -->
+    <section id="section-badges" class="hidden space-y-4">
+      <div>
+        <h2 class="text-base font-bold tracking-tight">Milestones & Badges</h2>
+        <p class="text-xs theme-muted mt-0.5">Unlock trophies as you build consistency</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5" id="badges-grid"></div>
+    </section>
+
+    <!-- SECTION 6: SETTINGS -->
+    <section id="section-settings" class="hidden space-y-5">
+      <div id="settings-alert" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+      <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/70 space-y-3">
+        <h3 class="text-sm font-bold flex items-center gap-1.5">
+          <span>👤</span> Profile & Bio
+        </h3>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider theme-muted mb-2">Avatar Icon</label>
+          <div class="flex items-center gap-2 flex-wrap" id="avatar-picker">
+            <button type="button" data-avatar="🦊" class="avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center">🦊</button>
+            <button type="button" data-avatar="🚀" class="avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center">🚀</button>
+            <button type="button" data-avatar="🌿" class="avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center">🌿</button>
+            <button type="button" data-avatar="🦁" class="avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center">🦁</button>
+            <button type="button" data-avatar="⚡" class="avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center">⚡</button>
+            <button type="button" data-avatar="🎨" class="avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center">🎨</button>
+          </div>
+          
+          <div class="mt-3">
+            <label for="custom-avatar-url" class="block text-xs theme-muted mb-1">Or paste a photo image URL:</label>
+            <input
+              type="url"
+              id="custom-avatar-url"
+              placeholder="https://images.unsplash.com/... or image link"
+              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label for="profile-bio-input" class="block text-xs font-semibold uppercase tracking-wider theme-muted mb-1.5">
+            About You / Status
+          </label>
+          <textarea
+            id="profile-bio-input"
+            rows="2"
+            maxlength="120"
+            placeholder="e.g. Building consistency one day at a time..."
+            class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+          ></textarea>
+        </div>
+
+        <button
+          id="save-profile-btn"
+          type="button"
+          class="theme-btn-primary text-xs font-semibold py-2 px-4 rounded-lg shadow-xs transition"
+        >
+          Save Profile Changes
+        </button>
+      </div>
+
+      <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/70 space-y-3">
+        <h3 class="text-sm font-bold flex items-center gap-1.5">
+          <span>🎨</span> App Theme
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="theme-selector">
+          <button
+            type="button"
+            data-theme="theme-emerald"
+            class="theme-opt flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 text-xs font-medium transition"
+          >
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span> Emerald
+          </button>
+          <button
+            type="button"
+            data-theme="theme-indigo"
+            class="theme-opt flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-500 text-xs font-medium transition"
+          >
+            <span class="w-3.5 h-3.5 rounded-full bg-indigo-500"></span> Indigo
+          </button>
+          <button
+            type="button"
+            data-theme="theme-rose"
+            class="theme-opt flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white hover:border-rose-500 text-xs font-medium transition"
+          >
+            <span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span> Rose
+          </button>
+          <button
+            type="button"
+            data-theme="theme-dark"
+            class="theme-opt flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-800 text-white hover:border-slate-500 text-xs font-medium transition"
+          >
+            <span class="w-3.5 h-3.5 rounded-full bg-slate-400"></span> Dark
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/70 space-y-3">
+        <h3 class="text-sm font-bold flex items-center gap-1.5">
+          <span>🔒</span> Reset Password
+        </h3>
+        <form id="password-reset-form" class="space-y-3">
+          <div>
+            <label for="current-pwd-input" class="block text-xs theme-muted mb-1">Current Password</label>
+            <input
+              type="password"
+              id="current-pwd-input"
+              required
+              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+            >
+          </div>
+          <div>
+            <label for="new-pwd-input" class="block text-xs theme-muted mb-1">New Password (at least 3 characters)</label>
+            <input
+              type="password"
+              id="new-pwd-input"
+              required
+              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+            >
+          </div>
+          <div>
+            <label for="confirm-pwd-input" class="block text-xs theme-muted mb-1">Confirm New Password</label>
+            <input
+              type="password"
+              id="confirm-pwd-input"
+              required
+              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900"
+            >
+          </div>
+          <button
+            type="submit"
+            class="theme-btn-primary text-xs font-semibold py-2 px-4 rounded-lg shadow-xs transition"
+          >
+            Update Password
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+// Helper: Local Date string YYYY-MM-DD
+function getLocalDateString(d = new Date()) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Storage Management
+function getInitialUsers() {
+  return {};
+}
+
+function loadUsers() {
+  try {
+    const stored = localStorage.getItem('habit_tracker_users_v2');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch (e) {
+    console.warn('localStorage not accessible, using in-memory state');
+  }
+  return getInitialUsers();
+}
+
+function saveUsers(users) {
+  try {
+    localStorage.setItem('habit_tracker_users_v2', JSON.stringify(users));
+  } catch (e) {
+    console.warn('Unable to save to localStorage');
+  }
+}
+
+function loadActiveSession() {
+  try {
+    return localStorage.getItem('habit_tracker_session_v2');
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveActiveSession(username) {
+  try {
+    if (username) {
+      localStorage.setItem('habit_tracker_session_v2', username);
+    } else {
+      localStorage.removeItem('habit_tracker_session_v2');
+    }
+  } catch (e) {}
+}
+
+// App State
+let users = loadUsers();
+let currentUsername = loadActiveSession();
+let authMode = 'login';
+let currentTab = 'habits';
+let selectedCategoryFilter = 'all';
+let selectedMood = '😄';
+let selectedAvatarEmoji = '🦊';
+
+// Focus Timer State
+let timerSeconds = 25 * 60;
+let timerRunning = false;
+let timerInterval = null;
+let timerMode = 'focus';
+
+// DOM Elements - Auth
+const authView = document.getElementById('auth-view');
+const trackerView = document.getElementById('tracker-view');
+const tabLogin = document.getElementById('tab-login');
+const tabSignup = document.getElementById('tab-signup');
+const authForm = document.getElementById('auth-form');
+const usernameInput = document.getElementById('username-input');
+const passwordInput = document.getElementById('password-input');
+const authSubmitBtn = document.getElementById('auth-submit-btn');
+const authAlert = document.getElementById('auth-alert');
+
+// DOM Elements - Header & Tabs
+const userAvatar = document.getElementById('user-avatar');
+const currentUserDisplay = document.getElementById('current-user-display');
+const streakCount = document.getElementById('streak-count');
+const logoutBtn = document.getElementById('logout-btn');
+
+const navHabits = document.getElementById('nav-habits');
+const navAnalytics = document.getElementById('nav-analytics');
+const navFocus = document.getElementById('nav-focus');
+const navJournal = document.getElementById('nav-journal');
+const navBadges = document.getElementById('nav-badges');
+const navSettings = document.getElementById('nav-settings');
+
+const sectionHabits = document.getElementById('section-habits');
+const sectionAnalytics = document.getElementById('section-analytics');
+const sectionFocus = document.getElementById('section-focus');
+const sectionJournal = document.getElementById('section-journal');
+const sectionBadges = document.getElementById('section-badges');
+const sectionSettings = document.getElementById('section-settings');
+
+// DOM Elements - Habits
+const progressText = document.getElementById('progress-text');
+const progressBar = document.getElementById('progress-bar');
+const habitForm = document.getElementById('habit-form');
+const habitInput = document.getElementById('habit-input');
+const habitCategorySelect = document.getElementById('habit-category-select');
+const habitList = document.getElementById('habit-list');
+const emptyState = document.getElementById('empty-state');
+const categoryFilters = document.getElementById('category-filters');
+
+// DOM Elements - Analytics
+const statTotalCompleted = document.getElementById('stat-total-completed');
+const statCurrentStreak = document.getElementById('stat-current-streak');
+const statPerfectDays = document.getElementById('stat-perfect-days');
+const statFocusMinutes = document.getElementById('stat-focus-minutes');
+const weeklyHeatmap = document.getElementById('weekly-heatmap');
+
+// DOM Elements - Focus Timer
+const timerDisplay = document.getElementById('timer-display');
+const timerStatus = document.getElementById('timer-status');
+const timerStartBtn = document.getElementById('timer-start-btn');
+const timerResetBtn = document.getElementById('timer-reset-btn');
+const timerModeFocus = document.getElementById('timer-mode-focus');
+const timerModeBreak = document.getElementById('timer-mode-break');
+
+// DOM Elements - Journal
+const journalForm = document.getElementById('journal-form');
+const moodPicker = document.getElementById('mood-picker');
+const journalWinInput = document.getElementById('journal-win-input');
+const journalNoteInput = document.getElementById('journal-note-input');
+const journalLogsList = document.getElementById('journal-logs-list');
+
+// DOM Elements - Badges
+const badgesGrid = document.getElementById('badges-grid');
+
+// DOM Elements - Settings
+const settingsAlert = document.getElementById('settings-alert');
+const customAvatarUrl = document.getElementById('custom-avatar-url');
+const profileBioInput = document.getElementById('profile-bio-input');
+const saveProfileBtn = document.getElementById('save-profile-btn');
+const passwordResetForm = document.getElementById('password-reset-form');
+const currentPwdInput = document.getElementById('current-pwd-input');
+const newPwdInput = document.getElementById('new-pwd-input');
+const confirmPwdInput = document.getElementById('confirm-pwd-input');
+const themeSelector = document.getElementById('theme-selector');
+const avatarPicker = document.getElementById('avatar-picker');
+
+// Global Auth Mode Switcher
+window.setAuthMode = function(mode) {
+  authMode = mode;
+  clearAlert();
+  if (mode === 'login') {
+    tabLogin.className = 'flex-1 py-2 text-sm font-semibold rounded-lg transition bg-white text-slate-900 shadow-xs';
+    tabSignup.className = 'flex-1 py-2 text-sm font-medium rounded-lg transition text-slate-500 hover:text-slate-900';
+    authSubmitBtn.textContent = 'Log In';
+    usernameInput.placeholder = 'Enter your username';
+  } else {
+    tabSignup.className = 'flex-1 py-2 text-sm font-semibold rounded-lg transition bg-white text-slate-900 shadow-xs';
+    tabLogin.className = 'flex-1 py-2 text-sm font-medium rounded-lg transition text-slate-500 hover:text-slate-900';
+    authSubmitBtn.textContent = 'Create Account';
+    usernameInput.placeholder = 'Choose a new username';
+  }
+};
+
+function showAlert(message, isSuccess = false, actionHtml = '') {
+  authAlert.innerHTML = message + (actionHtml ? `<div class="mt-2">${actionHtml}</div>` : '');
+  authAlert.className = `mb-4 p-3 rounded-xl text-xs font-medium border ${
+    isSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-700'
+  }`;
+  authAlert.classList.remove('hidden');
+}
+
+function clearAlert() {
+  authAlert.classList.add('hidden');
+  authAlert.innerHTML = '';
+}
+
+function showSettingsAlert(message, isSuccess = true) {
+  settingsAlert.textContent = message;
+  settingsAlert.className = `p-3 rounded-xl text-xs font-medium border ${
+    isSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-700'
+  }`;
+  settingsAlert.classList.remove('hidden');
+  setTimeout(() => settingsAlert.classList.add('hidden'), 4000);
+}
+
+// Global Auth Submission Handler
+window.handleAuthSubmit = function() {
+  const username = usernameInput.value.trim().toLowerCase();
+  const password = passwordInput.value;
+
+  if (!username || !password) {
+    showAlert('Please fill in both username and password.');
+    return;
+  }
+
+  if (authMode === 'signup') {
+    if (users[username]) {
+      showAlert(
+        `The username "<strong>${username}</strong>" is already taken.`,
+        false,
+        `<button type="button" onclick="setAuthMode('login')" class="underline font-bold text-slate-900">Switch to Log In</button>`
+      );
+      return;
+    }
+    if (password.length < 3) {
+      showAlert('Password must be at least 3 characters.');
+      return;
+    }
+
+    const today = getLocalDateString(new Date());
+    users[username] = {
+      password: password,
+      streak: 1,
+      lastLoginDate: today,
+      avatar: "🦊",
+      avatarUrl: "",
+      bio: "Ready to build new daily habits!",
+      theme: "theme-emerald",
+      habits: [
+        { id: Date.now(), name: "Drink 2L of water", category: "Health", completed: false },
+        { id: Date.now() + 1, name: "15 min book reading", category: "Learn", completed: false }
+      ],
+      journals: [],
+      focusMinutes: 0,
+      totalCompletedCount: 0,
+      perfectDaysCount: 0,
+      history: {},
+      badges: { "first_step": true }
+    };
+
+    saveUsers(users);
+    currentUsername = username;
+    saveActiveSession(username);
+    authForm.reset();
+    clearAlert();
+    showApp();
+  } else {
+    // Login mode
+    const user = users[username];
+    if (!user) {
+      // Helpful fallback: offer to create account directly!
+      showAlert(
+        `No account found for "<strong>${username}</strong>".`,
+        false,
+        `<button type="button" onclick="setAuthMode('signup'); handleAuthSubmit();" class="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition">Create account "${username}" now</button>`
+      );
+      return;
+    }
+
+    if (user.password !== password) {
+      showAlert('Password incorrect. Please check and try again.');
+      return;
+    }
+
+    ensureUserProperties(user);
+    calculateDailyStreak(user);
+    currentUsername = username;
+    saveActiveSession(username);
+    authForm.reset();
+    clearAlert();
+    showApp();
+  }
+};
+
+// Theme
+function applyTheme(themeName) {
+  document.body.className = `${themeName} theme-bg min-h-screen flex flex-col items-center justify-center py-6 px-3 sm:px-4`;
+  if (currentUsername && users[currentUsername]) {
+    users[currentUsername].theme = themeName;
+    saveUsers(users);
+  }
+  document.querySelectorAll('.theme-opt').forEach(btn => {
+    if (btn.dataset.theme === themeName) {
+      btn.classList.add('ring-2', 'ring-emerald-500', 'border-transparent');
+    } else {
+      btn.classList.remove('ring-2', 'ring-emerald-500', 'border-transparent');
+    }
+  });
+}
+
+themeSelector.addEventListener('click', (e) => {
+  const btn = e.target.closest('.theme-opt');
+  if (btn && btn.dataset.theme) {
+    applyTheme(btn.dataset.theme);
+    showSettingsAlert(`Theme switched to ${btn.dataset.theme.replace('theme-', '')}!`);
+  }
+});
+
+// Streaks
+function calculateDailyStreak(user) {
+  const today = getLocalDateString(new Date());
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = getLocalDateString(yesterday);
+
+  if (!user.lastLoginDate) {
+    user.streak = 1;
+    user.lastLoginDate = today;
+  } else if (user.lastLoginDate === today) {
+    if (!user.streak) user.streak = 1;
+  } else if (user.lastLoginDate === yesterdayStr) {
+    user.streak = (user.streak || 0) + 1;
+    user.lastLoginDate = today;
+  } else {
+    user.streak = 1;
+    user.lastLoginDate = today;
+  }
+  saveUsers(users);
+}
+
+// User properties guard
+function ensureUserProperties(user) {
+  if (!user.habits) user.habits = [];
+  if (!user.journals) user.journals = [];
+  if (!user.focusMinutes) user.focusMinutes = 0;
+  if (!user.totalCompletedCount) user.totalCompletedCount = 0;
+  if (!user.perfectDaysCount) user.perfectDaysCount = 0;
+  if (!user.history) user.history = {};
+  if (!user.badges) user.badges = {};
+}
+
+// Tabs
+const tabConfig = [
+  { btn: navHabits, section: sectionHabits, name: 'habits' },
+  { btn: navAnalytics, section: sectionAnalytics, name: 'analytics' },
+  { btn: navFocus, section: sectionFocus, name: 'focus' },
+  { btn: navJournal, section: sectionJournal, name: 'journal' },
+  { btn: navBadges, section: sectionBadges, name: 'badges' },
+  { btn: navSettings, section: sectionSettings, name: 'settings' }
+];
+
+window.switchTab = function(tab) {
+  currentTab = tab;
+  tabConfig.forEach(item => {
+    if (item.name === tab) {
+      item.btn.className = 'nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg transition bg-white text-slate-900 shadow-xs flex items-center justify-center gap-1';
+      item.section.classList.remove('hidden');
+    } else {
+      item.btn.className = 'nav-tab shrink-0 flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition text-slate-500 hover:text-slate-900 flex items-center justify-center gap-1';
+      item.section.classList.add('hidden');
+    }
+  });
+
+  if (tab === 'habits') renderHabits();
+  if (tab === 'analytics') renderAnalytics();
+  if (tab === 'journal') renderJournal();
+  if (tab === 'badges') renderBadges();
+  if (tab === 'settings') populateSettingsFields();
+};
+
+function renderAvatarElement(container, user) {
+  container.innerHTML = '';
+  if (user.avatarUrl && user.avatarUrl.trim() !== '') {
+    const img = document.createElement('img');
+    img.src = user.avatarUrl;
+    img.alt = 'Avatar';
+    img.className = 'w-full h-full object-cover';
+    img.onerror = () => { container.textContent = user.avatar || '👤'; };
+    container.appendChild(img);
+  } else if (user.avatar) {
+    container.textContent = user.avatar;
+  } else {
+    container.textContent = '👤';
+  }
+}
+
+function showApp() {
+  authView.classList.add('hidden');
+  trackerView.classList.remove('hidden');
+
+  const user = users[currentUsername];
+  if (!user) { logout(); return; }
+
+  ensureUserProperties(user);
+  applyTheme(user.theme || 'theme-emerald');
+
+  currentUserDisplay.textContent = currentUsername;
+  const streak = user.streak || 1;
+  streakCount.textContent = `${streak} ${streak === 1 ? 'Day' : 'Days'}`;
+  renderAvatarElement(userAvatar, user);
+
+  switchTab('habits');
+}
+
+window.logout = function() {
+  currentUsername = null;
+  saveActiveSession(null);
+  trackerView.classList.add('hidden');
+  authView.classList.remove('hidden');
+  setAuthMode('login');
+  applyTheme('theme-emerald');
+};
+
+// ================= HABITS =================
+categoryFilters.addEventListener('click', (e) => {
+  const btn = e.target.closest('.cat-filter');
+  if (btn && btn.dataset.filter) {
+    selectedCategoryFilter = btn.dataset.filter;
+    document.querySelectorAll('.cat-filter').forEach(b => {
+      b.className = 'cat-filter px-2.5 py-1 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+    });
+    btn.className = 'cat-filter px-2.5 py-1 rounded-lg font-semibold bg-slate-900 text-white transition';
+    renderHabits();
+  }
+});
+
+function renderHabits() {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  ensureUserProperties(user);
+
+  let habits = user.habits || [];
+  if (selectedCategoryFilter !== 'all') {
+    habits = habits.filter(h => h.category === selectedCategoryFilter);
+  }
+
+  habitList.innerHTML = '';
+  if (habits.length === 0) {
+    emptyState.classList.remove('hidden');
+  } else {
+    emptyState.classList.add('hidden');
+  }
+
+  const categoryIcons = {
+    Health: '🏃',
+    Mind: '🧘',
+    Work: '⚡',
+    Learn: '📚'
+  };
+
+  habits.forEach((habit) => {
+    const li = document.createElement('li');
+    li.className = `flex items-center justify-between p-3 rounded-xl border transition-all ${
+      habit.completed
+        ? 'bg-emerald-50/60 border-emerald-200 text-slate-400'
+        : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300 shadow-xs'
+    }`;
+
+    const checkContainer = document.createElement('div');
+    checkContainer.className = 'flex items-center gap-2.5 cursor-pointer select-none flex-1 overflow-hidden';
+    checkContainer.addEventListener('click', () => toggleHabit(habit.id));
+
+    const customCheck = document.createElement('div');
+    customCheck.className = `w-5 h-5 rounded-md flex items-center justify-center border transition shrink-0 ${
+      habit.completed ? 'theme-btn-primary border-transparent text-white' : 'border-slate-300 bg-white'
+    }`;
+    customCheck.innerHTML = habit.completed
+      ? '<svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>'
+      : '';
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'truncate';
+
+    const textSpan = document.createElement('span');
+    textSpan.className = `text-sm font-medium ${habit.completed ? 'line-through text-slate-400' : 'text-slate-800'}`;
+    textSpan.textContent = habit.name;
+
+    const catBadge = document.createElement('span');
+    const cat = habit.category || 'Health';
+    catBadge.className = 'ml-2 text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 font-semibold';
+    catBadge.textContent = `${categoryIcons[cat] || '✨'} ${cat}`;
+
+    textDiv.appendChild(textSpan);
+    textDiv.appendChild(catBadge);
+
+    checkContainer.appendChild(customCheck);
+    checkContainer.appendChild(textDiv);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'text-slate-300 hover:text-rose-500 p-1 rounded-lg transition shrink-0';
+    deleteBtn.setAttribute('aria-label', 'Delete habit');
+    deleteBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteHabit(habit.id);
+    });
+
+    li.appendChild(checkContainer);
+    li.appendChild(deleteBtn);
+    habitList.appendChild(li);
+  });
+
+  updateProgress();
+}
+
+function updateProgress() {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  const allHabits = user.habits || [];
+  const total = allHabits.length;
+  const completed = allHabits.filter(h => h.completed).length;
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  progressText.textContent = `${completed} / ${total} completed (${percentage}%)`;
+  progressBar.style.width = `${percentage}%`;
+
+  const today = getLocalDateString(new Date());
+  user.history[today] = { completed, total };
+  if (total > 0 && completed === total) {
+    user.badges["flawless_day"] = true;
+  }
+  saveUsers(users);
+}
+
+function addHabit(name, category) {
+  const trimmed = name.trim();
+  if (!trimmed || !currentUsername || !users[currentUsername]) return;
+
+  const newHabit = {
+    id: Date.now(),
+    name: trimmed,
+    category: category || "Health",
+    completed: false
+  };
+
+  users[currentUsername].habits.unshift(newHabit);
+  users[currentUsername].badges["first_step"] = true;
+  saveUsers(users);
+  renderHabits();
+}
+
+function toggleHabit(id) {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  user.habits = user.habits.map(h => {
+    if (h.id === id) {
+      const nextStatus = !h.completed;
+      if (nextStatus) {
+        user.totalCompletedCount = (user.totalCompletedCount || 0) + 1;
+        if (user.totalCompletedCount >= 10) user.badges["ten_completed"] = true;
+      }
+      return { ...h, completed: nextStatus };
+    }
+    return h;
+  });
+  saveUsers(users);
+  renderHabits();
+}
+
+function deleteHabit(id) {
+  if (!currentUsername || !users[currentUsername]) return;
+  users[currentUsername].habits = users[currentUsername].habits.filter(h => h.id !== id);
+  saveUsers(users);
+  renderHabits();
+}
+
+habitForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  addHabit(habitInput.value, habitCategorySelect.value);
+  habitInput.value = '';
+  habitInput.focus();
+});
+
+// ================= ANALYTICS =================
+function renderAnalytics() {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  ensureUserProperties(user);
+
+  statTotalCompleted.textContent = user.totalCompletedCount || 0;
+  statCurrentStreak.textContent = `${user.streak || 1} ${user.streak === 1 ? 'Day' : 'Days'}`;
+  
+  let perfectDays = 0;
+  Object.keys(user.history || {}).forEach(date => {
+    const day = user.history[date];
+    if (day.total > 0 && day.completed === day.total) perfectDays++;
+  });
+  statPerfectDays.textContent = perfectDays;
+  statFocusMinutes.textContent = `${user.focusMinutes || 0}m`;
+
+  weeklyHeatmap.innerHTML = '';
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const today = new Date();
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    const dateStr = getLocalDateString(d);
+    const dayName = dayNames[d.getDay()];
+
+    const rec = user.history[dateStr] || { completed: 0, total: 0 };
+    const pct = rec.total > 0 ? (rec.completed / rec.total) : 0;
+
+    let bgClass = 'bg-slate-200 text-slate-400';
+    if (pct === 1 && rec.total > 0) bgClass = 'bg-emerald-500 text-white font-bold';
+    else if (pct > 0) bgClass = 'bg-emerald-300 text-emerald-950 font-semibold';
+
+    const col = document.createElement('div');
+    col.className = 'flex flex-col items-center gap-1';
+
+    const box = document.createElement('div');
+    box.className = `w-8 h-8 rounded-lg flex items-center justify-center text-[10px] transition ${bgClass}`;
+    box.textContent = rec.completed;
+
+    const label = document.createElement('span');
+    label.className = 'text-[10px] theme-muted';
+    label.textContent = dayName;
+
+    col.appendChild(box);
+    col.appendChild(label);
+    weeklyHeatmap.appendChild(col);
+  }
+}
+
+// ================= FOCUS TIMER =================
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  timerDisplay.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+timerModeFocus.addEventListener('click', () => {
+  timerMode = 'focus';
+  timerSeconds = 25 * 60;
+  timerModeFocus.className = 'px-3 py-1 rounded-lg bg-white shadow-xs text-slate-900 transition';
+  timerModeBreak.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition';
+  timerStatus.textContent = 'Focus Session (25 min)';
+  pauseTimer();
+  updateTimerDisplay();
+});
+
+timerModeBreak.addEventListener('click', () => {
+  timerMode = 'break';
+  timerSeconds = 5 * 60;
+  timerModeBreak.className = 'px-3 py-1 rounded-lg bg-white shadow-xs text-slate-900 transition';
+  timerModeFocus.className = 'px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition';
+  timerStatus.textContent = 'Short Rest Break (5 min)';
+  pauseTimer();
+  updateTimerDisplay();
+});
+
+function startTimer() {
+  if (timerRunning) {
+    pauseTimer();
+    return;
+  }
+  timerRunning = true;
+  timerStartBtn.textContent = 'Pause';
+  timerStartBtn.className = 'bg-amber-500 hover:bg-amber-600 px-6 py-2.5 rounded-xl font-semibold text-sm text-white shadow-sm transition active:scale-95';
+  timerStatus.textContent = timerMode === 'focus' ? 'Deep work in progress...' : 'Relax and recharge...';
+
+  timerInterval = setInterval(() => {
+    if (timerSeconds > 0) {
+      timerSeconds--;
+      updateTimerDisplay();
+    } else {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timerStartBtn.textContent = 'Start';
+      timerStartBtn.className = 'theme-btn-primary px-6 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition active:scale-95';
+      
+      if (timerMode === 'focus') {
+        timerStatus.textContent = 'Session complete! 🎉 Take a break.';
+        if (currentUsername && users[currentUsername]) {
+          users[currentUsername].focusMinutes = (users[currentUsername].focusMinutes || 0) + 25;
+          users[currentUsername].badges["focus_master"] = true;
+          saveUsers(users);
+        }
+      } else {
+        timerStatus.textContent = 'Break finished! Ready for the next round?';
+      }
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  timerStartBtn.textContent = 'Start';
+  timerStartBtn.className = 'theme-btn-primary px-6 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition active:scale-95';
+}
+
+function resetTimer() {
+  pauseTimer();
+  timerSeconds = timerMode === 'focus' ? 25 * 60 : 5 * 60;
+  timerStatus.textContent = 'Ready to start';
+  updateTimerDisplay();
+}
+
+timerStartBtn.addEventListener('click', startTimer);
+timerResetBtn.addEventListener('click', resetTimer);
+
+// ================= JOURNAL =================
+moodPicker.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mood-btn');
+  if (btn && btn.dataset.mood) {
+    selectedMood = btn.dataset.mood;
+    document.querySelectorAll('.mood-btn').forEach(b => {
+      b.className = 'mood-btn text-xl p-2 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition';
+    });
+    btn.className = 'mood-btn text-xl p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 transition';
+  }
+});
+
+journalForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  ensureUserProperties(user);
+
+  const win = journalWinInput.value.trim();
+  const note = journalNoteInput.value.trim();
+  if (!win && !note) return;
+
+  const entry = {
+    id: Date.now(),
+    date: getLocalDateString(new Date()),
+    mood: selectedMood,
+    win: win || 'Took time to reflect on my habits.',
+    note: note
+  };
+
+  user.journals.unshift(entry);
+  user.badges["mindful"] = true;
+  saveUsers(users);
+
+  journalForm.reset();
+  renderJournal();
+});
+
+function renderJournal() {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  ensureUserProperties(user);
+
+  journalLogsList.innerHTML = '';
+  const logs = user.journals || [];
+
+  if (logs.length === 0) {
+    journalLogsList.innerHTML = '<p class="text-xs theme-muted py-3 text-center">No reflection logs yet. Write your daily entry above!</p>';
+    return;
+  }
+
+  logs.slice(0, 5).forEach(log => {
+    const card = document.createElement('div');
+    card.className = 'p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs space-y-1';
+
+    const top = document.createElement('div');
+    top.className = 'flex justify-between items-center text-xs';
+    top.innerHTML = `<span class="font-bold flex items-center gap-1"><span>${log.mood}</span> ${log.date}</span>`;
+
+    const winP = document.createElement('p');
+    winP.className = 'text-xs text-slate-800 font-medium';
+    winP.textContent = `🌟 ${log.win}`;
+
+    card.appendChild(top);
+    card.appendChild(winP);
+
+    if (log.note) {
+      const noteP = document.createElement('p');
+      noteP.className = 'text-[11px] theme-muted italic';
+      noteP.textContent = `"${log.note}"`;
+      card.appendChild(noteP);
+    }
+
+    journalLogsList.appendChild(card);
+  });
+}
+
+// ================= BADGES =================
+const badgesList = [
+  { id: "first_step", icon: "🌱", title: "First Step", desc: "Added your first daily habit" },
+  { id: "flawless_day", icon: "💯", title: "Flawless Day", desc: "Completed 100% of habits in one day" },
+  { id: "streak_3", icon: "🔥", title: "On Fire", desc: "Maintained a 3-day active streak" },
+  { id: "ten_completed", icon: "⚡", title: "Momentum", desc: "Completed 10 total habit tasks" },
+  { id: "focus_master", icon: "⏱️", title: "Focus Master", desc: "Completed a 25m Pomodoro session" },
+  { id: "mindful", icon: "📖", title: "Mindful", desc: "Wrote your first daily reflection entry" }
+];
+
+function renderBadges() {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  ensureUserProperties(user);
+
+  if ((user.streak || 1) >= 3) user.badges["streak_3"] = true;
+
+  badgesGrid.innerHTML = '';
+  badgesList.forEach(badge => {
+    const unlocked = !!user.badges[badge.id];
+
+    const card = document.createElement('div');
+    card.className = `p-3.5 rounded-xl border transition flex items-start gap-3 ${
+      unlocked
+        ? 'bg-amber-50/70 border-amber-200 text-slate-900 shadow-xs'
+        : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'
+    }`;
+
+    const iconDiv = document.createElement('div');
+    iconDiv.className = `w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 ${
+      unlocked ? 'bg-amber-100 border border-amber-300' : 'bg-slate-200'
+    }`;
+    iconDiv.textContent = badge.icon;
+
+    const info = document.createElement('div');
+    info.className = 'overflow-hidden';
+
+    const titleH = document.createElement('h4');
+    titleH.className = 'text-xs font-bold flex items-center gap-1.5';
+    titleH.textContent = badge.title;
+    if (unlocked) {
+      const check = document.createElement('span');
+      check.className = 'text-[10px] text-emerald-600';
+      check.textContent = '✓';
+      titleH.appendChild(check);
+    }
+
+    const descP = document.createElement('p');
+    descP.className = 'text-[10px] theme-muted mt-0.5 leading-snug';
+    descP.textContent = badge.desc;
+
+    info.appendChild(titleH);
+    info.appendChild(descP);
+
+    card.appendChild(iconDiv);
+    card.appendChild(info);
+    badgesGrid.appendChild(card);
+  });
+}
+
+// ================= SETTINGS =================
+function populateSettingsFields() {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+
+  selectedAvatarEmoji = user.avatar || '🦊';
+  customAvatarUrl.value = user.avatarUrl || '';
+  profileBioInput.value = user.bio || '';
+
+  document.querySelectorAll('#avatar-picker .avatar-option').forEach(btn => {
+    if (btn.dataset.avatar === selectedAvatarEmoji) {
+      btn.className = 'avatar-option text-xl w-10 h-10 rounded-xl border-2 border-emerald-500 bg-emerald-50 transition flex items-center justify-center';
+    } else {
+      btn.className = 'avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center';
+    }
+  });
+}
+
+avatarPicker.addEventListener('click', (e) => {
+  const btn = e.target.closest('.avatar-option');
+  if (btn && btn.dataset.avatar) {
+    selectedAvatarEmoji = btn.dataset.avatar;
+    document.querySelectorAll('#avatar-picker .avatar-option').forEach(b => {
+      b.className = 'avatar-option text-xl w-10 h-10 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 transition flex items-center justify-center';
+    });
+    btn.className = 'avatar-option text-xl w-10 h-10 rounded-xl border-2 border-emerald-500 bg-emerald-50 transition flex items-center justify-center';
+  }
+});
+
+saveProfileBtn.addEventListener('click', () => {
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+  user.avatar = selectedAvatarEmoji;
+  user.avatarUrl = customAvatarUrl.value.trim();
+  user.bio = profileBioInput.value.trim() || 'Habit builder';
+
+  saveUsers(users);
+  renderAvatarElement(userAvatar, user);
+  showSettingsAlert('Profile photo & description updated successfully!');
+});
+
+passwordResetForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!currentUsername || !users[currentUsername]) return;
+  const user = users[currentUsername];
+
+  const currentVal = currentPwdInput.value;
+  const newVal = newPwdInput.value;
+  const confirmVal = confirmPwdInput.value;
+
+  if (user.password !== currentVal) {
+    showSettingsAlert('Current password incorrect.', false);
+    return;
+  }
+  if (newVal.length < 3) {
+    showSettingsAlert('New password must be at least 3 characters long.', false);
+    return;
+  }
+  if (newVal !== confirmVal) {
+    showSettingsAlert('New passwords do not match.', false);
+    return;
+  }
+
+  user.password = newVal;
+  saveUsers(users);
+  passwordResetForm.reset();
+  showSettingsAlert('Password updated successfully! Keep it safe.');
+});
+
+// Initialize on Load
+if (currentUsername && users[currentUsername]) {
+  ensureUserProperties(users[currentUsername]);
+  calculateDailyStreak(users[currentUsername]);
+  showApp();
+} else {
+  setAuthMode('login');
+}
+
+</script>
+</body>
+</html>
